@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block extra_style %}
+<style>
+    .card {margin-right: 10px;}
+    .firstRowCol {margin-left: 10px;}
+    .card:last-of-type { margin-right: 0;}
+    .dashboardComponent { color: #718dbf; 
+                        text-align: center;}
+    .dashboardReadDisplay { font-size: 2em;}
+</style>
+{% endblock %}
+{% block content %}
+<div class="card d-flex align-items-end">
+        <form class="form-inline" hx-get="{{ request.get_full_path }}" hx-trigger="submit" 
+        hx-target="#dashboard_main">
+            {% csrf_token %}
+            <div class="form-group mx-sm-2 mb-2">
+                <label class="mx-sm-2" for="time_range">Select time range:</label>
+                <select class="form-control wx-75" name="time_range">
+                    <option value="5">5 minutes</option>
+                    <option value="30">30 minutes</option>
+                    <option value="60" selected>1 hour</option>
+                    <option value="120">2 hours</option>
+                    <option value="240">4 hours</option>
+                    <option value="720">12 hours</option>
+                    <option value="1440">1 day</option>
+                    <option value="2880">2 days</option>
+                    <option value="10080">1 week</option>
+                    <option value="43200">1 month</option>
+                    <option value="129600">3 months</option>
+                    <option value="525600">1 year</option>
+                </select>
+            </div>
+            <button type="submit" class="btn mb-2 btn-secondary mr-1"><img class="mr-1" src="{% static 'icons/save.svg' %}" alt="forward-icon">Select range</button>
+            <button type="submit" class="btn mb-2 btn-secondary"><img class="mr-1" src="{% static 'icons/refresh.svg' %}" alt="forward-icon">Refresh Dashboard</button>
+        </form>
+</div>
+<br>
+<div id="dashboard_main">
+    <div class="row">
+        <div class="card col-3 shadow p-3 mb-5 bg-white rounded firstRowCol dashboardComponent">
+            <div class="card-header"><h4>Last System Update</h4></div>
+            <div class="card-body dashboardReadDisplay">{{ last_sys_update }}</div>
+        </div>
+        <div class="card col-3 shadow p-3 mb-5 bg-white rounded dashboardComponent">
+            <div class="card-header"><h4>Last Ignition State</h4></div>
+            <div class="card-body dashboardReadDisplay">{{ last_ignition_state }}</div>
+        </div>
+        <div class="card col-3 shadow p-3 mb-5 bg-white rounded dashboardComponent" id="fuelLevelDiv">
+            <div class="card-header"><h4>Fuel Level</h4></div>
+            <div class="card-body dashboardReadDisplay" id="fuelLevelVal">{{ last_fuel_level }}%</div>
+        </div>
+    </div>
+    <div class="card col-9 shadow p-3 mb-5 bg-white rounded">
+        {{ div|safe }}
+    </div>
+    <div hidden hx-get="{% url 'monitor:refresh' %}" hx-trigger="every 120s"></div>
+    {{script|safe}}
+</div>
+
+<script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-2.4.2.min.js"
+        crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-2.4.2.min.js"
+        crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-tables-2.4.2.min.js"
+        crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-gl-2.4.2.min.js"
+        crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-mathjax-2.4.2.min.js"
+        crossorigin="anonymous"></script>
+<script>
+    fuelLevelDiv.addEventListener('load', checkFuelLevel());
+    
+    function checkFuelLevel(){
+        const fuelLevelDiv = document.querySelector('#fuelLevelDiv');
+        const fuelLevel = '{{ last_fuel_level }}';
+        if(fuelLevel > 50.0 ){
+            fuelLevelDiv.style.color = '#22e04e';
+        } else if (fuelLevel >= 25.0 && fuelLevel < 50.0 ){
+            fuelLevelDiv.style.color = '#ffc559';
+        } else if (fuelLevel < 25.0){
+            fuelLevelDiv.style.color = '#ff3333';
+        }
+    }
+</script>
+{% endblock %}

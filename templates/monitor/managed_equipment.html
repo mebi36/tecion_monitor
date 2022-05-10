@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <h3>Actively Monitored Equipment</h3>
+    {% if managed_equipment %}
+    <ul>
+      {% for item in managed_equipment %}
+        <li><a href="{{ item.get_dashboard_url }}"><img class="mr-1" src='{% static "icons/escavator.svg" %}'>{{ item.type.name }} - {{ item.id }}</a></li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p>No equipment found</p>
+    {% endif %}
+{% endblock %}
